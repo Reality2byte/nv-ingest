@@ -20,7 +20,7 @@ dependencies = [
     "bm25s",
     "datasets>=4.5.0",
     "jinja2",
-    "litellm>=1.50,<=1.82.6",
+    "litellm<=1.83.9,>=1.83.9",
     "Pillow",
     "pydantic>=2.0.0,<3.0.0",
     "pytrec_eval",
@@ -28,7 +28,7 @@ dependencies = [
     "python-dotenv>=1.0.1,<2.0.0",
     "rich",
     "torch",
-    "transformers>=4.56.0",
+    "transformers>=4.57.6",
     "typer>=0.12.3,<1.0.0",
     "torchvision>=0.23.0",
 ]
