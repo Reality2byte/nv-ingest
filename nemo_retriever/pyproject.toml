@@ -61,7 +61,7 @@ dependencies = [
   # Document parsing and NIM client libs
   "pypdfium2==4.30.0",
   "pillow==12.2.0",
-  "nltk==3.9.3",
+  "nltk==3.9.4",
   "markitdown",
   "langchain-nvidia-ai-endpoints>=0.3.0",
   # Default VDB solution
@@ -120,7 +120,7 @@ local = [
   # vLLM compiles CUDA kernels at runtime via torch inductor (requires Python.h).
   # Use a uv-managed Python (`uv python install 3.12`) so headers are available;
   # system Python installs typically omit them and will fail with InductorError.
-  "vllm==0.20.0; sys_platform == 'linux'",
+  "vllm==0.20.2; sys_platform == 'linux'",
   # flashinfer and cubin versions must match
   "flashinfer-cubin==0.6.8.post1; sys_platform == 'linux'",
   "flashinfer-python==0.6.8.post1; sys_platform == 'linux'",
