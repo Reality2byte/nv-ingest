@@ -64,6 +64,8 @@ client = create_inference_client(
 
 To integrate a new NIM, you need to create a custom `ModelInterface` subclass that implements the required methods.
 
+For ingest pipeline APIs used with custom NIMs, refer to the [Python API guide](nemo-retriever-api-reference.md).
+
 ### Basic Model Interface Template
 
 ```python
@@ -258,6 +260,8 @@ class MyCustomModelInterface(ModelInterface):
 
 ## Real-World Examples
 
+For parameter details on ingest and pipeline APIs, refer to the [Python API guide](nemo-retriever-api-reference.md).
+
 ### Text Generation Model Interface
 
 ```python
@@ -376,6 +380,8 @@ class ImageAnalysisModelInterface(ModelInterface):
 ```
 
 ## Using NimClient in UDFs
+
+For ingest pipeline APIs used in UDFs, refer to the [Python API guide](nemo-retriever-api-reference.md).
 
 ### Basic UDF with NimClient
 
