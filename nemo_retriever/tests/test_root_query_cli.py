@@ -9,6 +9,7 @@ import json
 from typing import Any
 
 import pytest
+import typer.rich_utils as typer_rich_utils
 from typer.testing import CliRunner
 
 import nemo_retriever.query.workflow as query_core
@@ -543,12 +544,45 @@ def test_root_query_max_text_chars_truncates_and_omits(monkeypatch) -> None:
     assert meta_hit["page_number"] == 1
 
 
-def test_root_query_help_lists_service_mode() -> None:
-    result = RUNNER.invoke(cli_main.app, ["query", "--help"], env={"COLUMNS": "200"})
+def test_root_query_help_defaults_to_local_command(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(typer_rich_utils, "MAX_WIDTH", 200)
+    monkeypatch.setattr(typer_rich_utils, "FORCE_TERMINAL", False)
+    result = RUNNER.invoke(
+        cli_main.app,
+        ["query", "--help"],
+        prog_name="retriever",
+    )
 
     assert result.exit_code == 0
-    assert "│ service " in result.output
+    assert "Usage: retriever query [OPTIONS] QUERY" in result.output
+    assert "_local" not in result.output
+    assert "retriever ingest local" not in result.output
+    assert "retriever ingest --lancedb-uri" in result.output
+    assert "Query a LanceDB index produced by local or batch ingest" in result.output
+    assert "For a service deployment" in result.output
+    assert "retriever query service --help" in result.output
+    assert "--retrieval-mode" in result.output
+    assert "--lancedb-uri" in result.output
     assert "--run-mode" not in result.output
+    assert "--service-url" not in result.output
+
+
+def test_root_query_mode_overview_does_not_expose_internal_local_command() -> None:
+    result = RUNNER.invoke(cli_main.app, ["query"], prog_name="retriever")
+
+    assert result.exit_code == 2
+    assert "retriever query QUERY" in result.output
+    assert "service" in result.output
+    assert "_local" not in result.output
+
+
+def test_root_query_errors_reference_only_the_public_help_path() -> None:
+    for flag in ("-h", "--not-a-query-option"):
+        result = RUNNER.invoke(cli_main.app, ["query", flag], prog_name="retriever")
+
+        assert result.exit_code == 2
+        assert "Try 'retriever query --help' for help" in result.output
+        assert "_local" not in result.output
 
 
 def test_root_query_local_help_shows_retrieval_mode_not_hybrid() -> None:
