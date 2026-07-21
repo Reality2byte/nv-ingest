@@ -174,18 +174,22 @@ output are not used for content-type matching.
 `--agentic` swaps the single dense pass for an LLM-driven ReAct loop: the agent
 issues several retrieval sub-queries, fuses the candidates, and selects a final
 ranking. It searches the same LanceDB table built by `retriever ingest`, so it is
-a drop-in alternative to standard retrieval — add `--agentic` and name the chat
-model the agent drives with `--agentic-llm-model` (required):
+a drop-in alternative to standard retrieval.
+
+By default, agentic retrieval runs the agent LLM in process with local vLLM and
+`nemotron-8b` (`nvidia/Llama-3.1-Nemotron-Nano-8B-v1`). This requires a CUDA GPU
+host and the local extras installed. Provide `--agentic-invoke-url` when you want
+a custom model or a separately hosted OpenAI-compatible endpoint.
 
 ```bash
+# default local vLLM agent LLM: nemotron-8b
 retriever query "how does the ingestion pipeline handle tables?" \
-  --agentic \
-  --agentic-llm-model nvidia/llama-3.3-nemotron-super-49b-v1.5
+  --agentic
 
-# remote agent + embedding endpoints, fewer reasoning rounds
+# custom/self-hosted model through an OpenAI-compatible endpoint
 retriever query "summarize the deployment options" \
   --agentic \
-  --agentic-llm-model nvidia/llama-3.3-nemotron-super-49b-v1.5 \
+  --agentic-llm-model custom-remote-model \
   --agentic-invoke-url http://localhost:9000/v1/chat/completions \
   --embed-invoke-url http://localhost:8000/v1 \
   --agentic-react-max-steps 5
@@ -197,8 +201,8 @@ produced it (`final_results`, `rrf`, or `selection_agent`). It reuses the same
 `--top-k`, `--lancedb-uri`, `--table-name`, `--embed-invoke-url`, and
 `--embed-model-name` options as standard retrieval.
 
-**How it works.** Each agentic query runs `Query → ReActAgentOperator → (RRF
-fusion) → SelectionAgentOperator → ranked results`:
+**How it works.** Each agentic query runs `Query -> ReActAgentOperator -> (RRF
+fusion) -> SelectionAgentOperator -> ranked results`:
 
 - `ReActAgentOperator` runs the per-query ReAct loop; every `retrieve` tool call
   delegates to the standard `Retriever`, so the agent searches the same vector
@@ -210,17 +214,21 @@ fusion) → SelectionAgentOperator → ranked results`:
 
 Agentic-only knobs (apply only with `--agentic`):
 
+- `--agentic-llm-model` — local profile alias/model ID when no invoke URL is
+  provided (`nemotron-8b` by default; `super-49b` also supported), or the remote
+  model ID when `--agentic-invoke-url` is provided.
 - `--agentic-invoke-url` — OpenAI-compatible chat-completions endpoint for the
-  agent LLM; defaults to the operators' built-in endpoint when omitted.
+  agent LLM. Providing it routes agent LLM calls to that remote endpoint.
 - `--agentic-reasoning-effort` (default `high`) — `reasoning_effort` forwarded on
-  agentic LLM calls.
+  OpenAI-compatible agentic LLM calls; ignored by the local adapter.
+- `--agentic-temperature` (default `0.0`) — sampling temperature for agent LLM
+  calls. Local and non-NVIDIA OpenAI-compatible endpoints allow up to `2.0`;
+  NVIDIA-hosted endpoints allow up to `1.0`.
 - `--agentic-backend-top-k` (default `20`) — candidates pulled from the vector DB
   per retrieval call.
 - `--agentic-react-max-steps` (default `50`) — maximum ReAct loop iterations.
 - `--agentic-text-truncation` (default `0`) — max characters of each candidate
   shown to the agent; `0` disables truncation.
-- `--agentic-temperature` (default `0.0`) — sampling temperature for agentic LLM
-  calls (`0.0` = greedy).
 
 <!-- --8<-- [end:quickstart] -->
 
