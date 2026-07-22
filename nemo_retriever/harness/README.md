@@ -272,8 +272,39 @@ writes local artifacts and never contacts Slack. `post-slack` reads an existing
 session or run artifact, builds a summary, and sends that summary without
 rerunning ingestion or queries.
 
+Each new run records `gpu_sku` and `gpu_count` from the physical inventory
+reported by `nvidia-smi`. It separately records `workload_gpu_count`, the number
+of GPUs available to that process after an explicit `CUDA_VISIBLE_DEVICES`
+constraint. Slack labels these as physical inventory versus GPUs available to
+the workload, so a partition of a larger host is not mistaken for the whole
+machine.
+
 This separation lets you inspect a completed session before reporting it and
 reuse the same artifacts when report formatting changes.
+
+To show the current release beside each nightly result, provide one external
+release-reference snapshot:
+
+```json
+{
+  "baselines": [
+    {
+      "name": "RC26.05 Perflab",
+      "dataset": "bo767",
+      "environment": {"gpu_sku": "NVIDIA H100 80GB HBM3", "gpu_count": 8},
+      "metrics": {"ingest_secs": 4036.85, "pages_per_sec_ingest": 13.56}
+    }
+  ]
+}
+```
+
+Pass it with `post-slack --reference-file PATH`, or set
+`RETRIEVER_HARNESS_REFERENCE_FILE` for recurring nightlies. Slack shows the
+observed nightly and release values side by side with their GPU context. It
+does not assign a verdict or use the reference for pass/fail. Keep the snapshot
+outside the repository; advancing to the next RC only requires replacing its
+release label and result values. The harness never appends to this file or
+maintains reference history.
 
 ### Prerequisites
 
